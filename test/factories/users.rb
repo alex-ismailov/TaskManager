@@ -1,12 +1,12 @@
 FactoryBot.define do
   factory :user do
     id { 1 }
-    first_name { 'MyString' }
-    last_name { 'MyString' }
-    password { 'MyString' }
-    email { 'adam@adam.com' }
-    avatar { 'MyString' }
-    type { '' }
+    first_name { generate(:user) }
+    last_name { generate(:user) }
+    password { generate(:user) }
+    email { generate(:user_email) }
+    avatar { generate(:user) }
+    type { generate(:user) }
 
     factory :developer do
       type { 'Developer' }
