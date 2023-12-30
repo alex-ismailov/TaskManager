@@ -1,12 +1,11 @@
 FactoryBot.define do
-  factory :user do
-    id { 1 }
-    first_name { generate(:user) }
-    last_name { generate(:user) }
-    password { generate(:user) }
-    email { generate(:user_email) }
-    avatar { generate(:user) }
-    type { generate(:user) }
+  factory :user, aliases: [:author, :assignee] do
+    first_name
+    last_name
+    password
+    email
+    avatar
+    type
 
     factory :developer do
       type { 'Developer' }
