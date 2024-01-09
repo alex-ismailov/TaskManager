@@ -2,9 +2,9 @@ FactoryBot.define do
   factory :task do
     name
     description
-    author_id { 1 }
-    assignee_id { 1 }
+    author
+    assignee
     state { 'MyString' }
-    expired_at { '2022-05-24' }
+    expired_at { Date.current + 7.days }
   end
 end
