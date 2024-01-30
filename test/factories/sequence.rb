@@ -3,10 +3,6 @@ FactoryBot.define do
     "user-string#{n}"
   end
 
-  sequence :type_data, aliases: [:type] do
-    'Admin'
-  end
-
   sequence :email_data, aliases: [:email] do |n|
     "user#{n}@example.com"
   end
