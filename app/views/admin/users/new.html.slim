@@ -1,2 +1,1 @@
-= simple_form_for @user, as: :user, url: admin_users_path do |f|
-  = render 'form', title: 'Create new user', f: f
+= render 'form', title: 'Create new user', user: @user, url: admin_users_path

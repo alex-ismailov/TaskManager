@@ -1,2 +1,1 @@
-= simple_form_for @user, as: :user, url: admin_user_path(@user) do |f|
-  = render 'form', title: 'Edit user', f: f
+= render 'form', title: 'Edit user', user: @user, url: admin_user_path(@user)
