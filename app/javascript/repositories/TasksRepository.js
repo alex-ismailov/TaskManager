@@ -1,14 +1,15 @@
-import routes from 'routes';
+import routes from '../routes';
 import FetchHelper from 'utils/fetchHelper';
 
 export default {
   index(params) {
-    const path = routes.apiV1TasksPath();
+    const path = routes.apiV1TasksPath({ format: 'json' });
+
     return FetchHelper.get(path, params);
   },
 
   show(id) {
-    const path = routes.apiV1TaskPath(id);
+    const path = routes.apiV1TaskPath(id, { format: 'json' });
 
     return FetchHelper.get(path);
   },
