@@ -71,6 +71,23 @@ const TaskBoard = () => {
     STATES.map(({ key }) => loadColumnInitial(key));
   };
 
+  const handleCardDragEnd = (task, source, destination) => {
+    const transition = task.transitions.find(({ to }) => destination.toColumnId === to);
+    if (!transition) {
+      return null;
+    }
+
+    return TasksRepository.update(task.id, { stateEvent: transition.event })
+      .then(() => {
+        loadColumnInitial(destination.toColumnId);
+        loadColumnInitial(source.fromColumnId);
+      })
+      .catch((error) => {
+        // eslint-disable-next-line no-alert
+        alert(`Move failed! ${error.message}`);
+      });
+  };
+
   useEffect(() => loadBoard(), []);
   useEffect(() => generateBoard(), [boardCards]);
 
@@ -79,6 +96,7 @@ const TaskBoard = () => {
       disableColumnDrag
       renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadColumnMore} />}
       renderCard={(card) => <Task task={card} />}
+      onCardDragEnd={handleCardDragEnd}
     >
       {board}
     </KanbanBoard>
