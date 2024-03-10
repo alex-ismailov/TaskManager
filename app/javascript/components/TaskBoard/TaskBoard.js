@@ -14,9 +14,11 @@ import Task from 'components/Task';
 import TasksRepository from 'repositories/TasksRepository';
 import ColumnHeader from 'components/ColumnHeader';
 import AddPopup from 'components/AddPopup';
+import EditPopup from 'components/EditPopup';
 
 const MODES = {
   ADD: 'add',
+  EDIT: 'edit',
   NONE: 'none',
 };
 
@@ -43,6 +45,7 @@ const TaskBoard = () => {
   const [board, setBoard] = useState(initialBoard);
   const [boardCards, setBoardCards] = useState({});
   const [mode, setMode] = useState(MODES.NONE);
+  const [openedTaskId, setOpenedTaskId] = useState(null);
 
   const styles = useStyles();
 
@@ -88,6 +91,38 @@ const TaskBoard = () => {
     STATES.map(({ key }) => loadColumnInitial(key));
   };
 
+  const loadTask = (id) => TasksRepository.show(id).then(({ data: { task } }) => task);
+
+  const handleAddPopupOpen = () => setMode(MODES.ADD);
+
+  const handleEditPopupOpen = (task) => {
+    setOpenedTaskId(task.id);
+    setMode(MODES.EDIT);
+  };
+
+  const handleModalClose = () => {
+    setMode(MODES.NONE);
+    setOpenedTaskId(null);
+  };
+
+  const handleTaskUpdate = (task) => {
+    const attributes = TaskForm.attributesToSubmit(task);
+
+    return TasksRepository.update(task.id, attributes).then(() => {
+      loadColumnInitial(task.state);
+      handleModalClose();
+    });
+  };
+
+  const handleTaskDestroy = (task) => {
+    const { id, state } = task;
+
+    return TasksRepository.destroy(id).then(() => {
+      loadColumnInitial(state);
+      handleModalClose();
+    });
+  };
+
   const handleCardDragEnd = (task, source, destination) => {
     const transition = task.transitions.find(({ to }) => destination.toColumnId === to);
 
@@ -106,14 +141,6 @@ const TaskBoard = () => {
         // eslint-disable-next-line no-alert
         alert(`Move failed! ${error.message}`);
       });
-  };
-
-  const handleAddPopupOpen = () => {
-    setMode(MODES.ADD);
-  };
-
-  const handleClose = () => {
-    setMode(MODES.NONE);
   };
 
   const handleTaskCreate = (params) => {
@@ -136,12 +163,21 @@ const TaskBoard = () => {
       <KanbanBoard
         disableColumnDrag
         renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadColumnMore} />}
-        renderCard={(card) => <Task task={card} />}
+        renderCard={(card) => <Task task={card} onClick={handleEditPopupOpen} />}
         onCardDragEnd={handleCardDragEnd}
       >
         {board}
       </KanbanBoard>
-      {mode === MODES.ADD && <AddPopup onCardCreate={handleTaskCreate} onClose={handleClose} />}
+      {mode === MODES.ADD && <AddPopup onCardCreate={handleTaskCreate} onClose={handleModalClose} />}
+      {mode === MODES.EDIT && (
+        <EditPopup
+          onCardLoad={loadTask}
+          onCardDestroy={handleTaskDestroy}
+          onCardUpdate={handleTaskUpdate}
+          onClose={handleModalClose}
+          cardId={openedTaskId}
+        />
+      )}
     </Container>
   );
 };
