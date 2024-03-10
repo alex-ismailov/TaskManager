@@ -2,9 +2,23 @@ import React, { useEffect, useState } from 'react';
 import KanbanBoard from '@asseinfo/react-kanban';
 import { propOr } from 'ramda';
 
+import Container from '@material-ui/core/Container';
+import Fab from '@material-ui/core/Fab';
+import AddIcon from '@material-ui/icons/Add';
+
+import useStyles from './useStyles';
+
+import TaskForm from 'forms/TaskForm';
+
 import Task from 'components/Task';
 import TasksRepository from 'repositories/TasksRepository';
 import ColumnHeader from 'components/ColumnHeader';
+import AddPopup from 'components/AddPopup';
+
+const MODES = {
+  ADD: 'add',
+  NONE: 'none',
+};
 
 const STATES = [
   { key: 'new_task', value: 'New' },
@@ -27,7 +41,10 @@ const initialBoard = {
 
 const TaskBoard = () => {
   const [board, setBoard] = useState(initialBoard);
-  const [boardCards, setBoardCards] = useState([]);
+  const [boardCards, setBoardCards] = useState({});
+  const [mode, setMode] = useState(MODES.NONE);
+
+  const styles = useStyles();
 
   const loadColumn = (state, page, perPage) =>
     TasksRepository.index({
@@ -45,7 +62,7 @@ const TaskBoard = () => {
     });
   };
 
-  const loadColumnMore = (state, page = 1, perPage = 10) => {
+  const loadColumnMore = (state, page, perPage = 10) => {
     loadColumn(state, page, perPage).then(({ data }) => {
       setBoardCards((prevState) => ({
         ...prevState,
@@ -73,14 +90,17 @@ const TaskBoard = () => {
 
   const handleCardDragEnd = (task, source, destination) => {
     const transition = task.transitions.find(({ to }) => destination.toColumnId === to);
+
     if (!transition) {
       return null;
     }
 
-    return TasksRepository.update(task.id, { stateEvent: transition.event })
+    const params = { task: { stateEvent: transition.event } };
+
+    return TasksRepository.update(task.id, params)
       .then(() => {
-        loadColumnInitial(destination.toColumnId);
         loadColumnInitial(source.fromColumnId);
+        loadColumnInitial(destination.toColumnId);
       })
       .catch((error) => {
         // eslint-disable-next-line no-alert
@@ -88,18 +108,41 @@ const TaskBoard = () => {
       });
   };
 
+  const handleAddPopupOpen = () => {
+    setMode(MODES.ADD);
+  };
+
+  const handleClose = () => {
+    setMode(MODES.NONE);
+  };
+
+  const handleTaskCreate = (params) => {
+    const attributes = TaskForm.attributesToSubmit(params);
+
+    return TasksRepository.create(attributes).then(({ data: { task } }) => {
+      loadColumnInitial(task.state);
+      setMode(MODES.NONE);
+    });
+  };
+
   useEffect(() => loadBoard(), []);
   useEffect(() => generateBoard(), [boardCards]);
 
   return (
-    <KanbanBoard
-      disableColumnDrag
-      renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadColumnMore} />}
-      renderCard={(card) => <Task task={card} />}
-      onCardDragEnd={handleCardDragEnd}
-    >
-      {board}
-    </KanbanBoard>
+    <Container>
+      <Fab className={styles.addButton} color="primary" aria-label="add" onClick={handleAddPopupOpen}>
+        <AddIcon />
+      </Fab>
+      <KanbanBoard
+        disableColumnDrag
+        renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadColumnMore} />}
+        renderCard={(card) => <Task task={card} />}
+        onCardDragEnd={handleCardDragEnd}
+      >
+        {board}
+      </KanbanBoard>
+      {mode === MODES.ADD && <AddPopup onCardCreate={handleTaskCreate} onClose={handleClose} />}
+    </Container>
   );
 };
 
