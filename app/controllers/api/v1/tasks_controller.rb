@@ -8,7 +8,7 @@ class Api::V1::TasksController < Api::V1::ApplicationController
       page(page).
       per(per_page)
 
-    respond_with(tasks, each_serializer: TaskSerializer, root: 'times', meta: build_meta(tasks))
+    respond_with(tasks, each_serializer: TaskSerializer, root: 'items', meta: build_meta(tasks))
   end
 
   def show
